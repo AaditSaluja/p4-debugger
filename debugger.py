@@ -1,3 +1,6 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+
 def parse_registerf(content, reg_handle):
     # data in the format index : [val, changecounter]
     reg_data = {}
@@ -16,8 +19,8 @@ def parse_registerf(content, reg_handle):
                 counter = 0
             reg_data[key_val[0]] = [key_val[3], counter + 1]
     
-    for key, val in reg_data.items():
-        output_file.write(key + ": " + val[0] + " - " + val[1] + "\n")
+    viz_data(reg_data, output_file)
+    
 
     output_file.close()
     debug.close()
@@ -47,14 +50,41 @@ def parse_register_largef(file_handler, reg_handle, final_time_lst):
         except:
             break
     
-    for key, val in reg_data.items():
-        output_file.write(key + ": " + val[0] + " - " + str(val[1]) + "\n")
+    # for key, val in reg_data.items():
+    #     output_file.write(key + ": " + val[0] + " - " + str(val[1]) + "\n")
+
+    viz_data(reg_data, output_file)
 
     output_file.close()
     debug.close()
 
 
+def viz_data(reg_data, filehandler):
+    data_pd = {"Index": [],
+               "Final Value": [],
+               "Changes in Timeperiod": []}
+    
+    for key, val in reg_data.items():
+        filehandler.write(key + ": " + val[0] + " - " + str(val[1]) + "\n")
+        data_pd["Index"].append(key)
+        data_pd["Final Value"].append(val[0])
+        data_pd["Changes in Timeperiod"].append(val[1])
 
+    df = pd.DataFrame(data_pd)
+    print(df)
+
+    fig, ax = plt.subplots()
+
+    # hide axes
+    fig.patch.set_visible(False)
+    ax.axis('off')
+    ax.axis('tight')
+
+    ax.table(cellText=df.values, colLabels=df.columns, loc='center')
+
+    fig.tight_layout()
+
+    plt.show()
 
 
 def track_pathf(filehandler, timeperiod, registername):
