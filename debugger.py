@@ -29,7 +29,7 @@ def parse_registerf(content, reg_handle):
                 except:
                     change_dic[key_val[0]] = {counter + 1: key_val[3]}
     
-    status = viz_data(reg_data, output_file)
+    status = viz_data(reg_data, output_file, reg_handle)
     if(track_index == '1' and status == 1):
         viz_index(change_dic)
 
@@ -73,7 +73,7 @@ def parse_register_largef(file_handler, reg_handle, final_time_lst):
     # for key, val in reg_data.items():
     #     output_file.write(key + ": " + val[0] + " - " + str(val[1]) + "\n")
 
-    status = viz_data(reg_data, output_file)
+    status = viz_data(reg_data, output_file, reg_handle)
 
     if(track_index == '1' and status == 1):
         viz_index(change_dic)
@@ -83,7 +83,7 @@ def parse_register_largef(file_handler, reg_handle, final_time_lst):
     return
 
 
-def viz_data(reg_data, filehandler):
+def viz_data(reg_data, filehandler, reg_name):
 
     if(len(reg_data) == 0):
         print("No Register Updates In Region")
@@ -100,20 +100,25 @@ def viz_data(reg_data, filehandler):
 
     df = pd.DataFrame(data_pd)
     print(df)
-    
-    
-    fig, ax = plt.subplots()
 
-    # hide axes
-    fig.patch.set_visible(False)
-    ax.axis('off')
-    ax.axis('tight')
 
-    ax.table(cellText=df.values, colLabels=df.columns, loc='center')
-
-    fig.tight_layout()
+    if(len(data_pd["Index"]) < 55):
     
-    plt.savefig('registers.png', bbox_inches='tight')
+        fig, ax = plt.subplots()
+
+        # hide axes
+        fig.patch.set_visible(False)
+        ax.axis('off')
+        ax.axis('tight')
+
+        ax.table(cellText=df.values, colLabels=df.columns, loc='center')
+
+        fig.tight_layout()
+        filename = reg_name + '.png'
+        plt.savefig(filename, bbox_inches='tight')
+    else:
+        filename = reg_name + '.csv'
+        df.to_csv(filename)
     
     return 1
 
@@ -134,18 +139,26 @@ def viz_index(change_data):
 
     df = pd.DataFrame(data_pd)
     
-    fig, ax = plt.subplots()
+    if(len(data_pd["Value"]) < 55):
+        fig, ax = plt.subplots()
 
-    # hide axes
-    fig.patch.set_visible(False)
-    ax.axis('off')
-    ax.axis('tight')
+        # hide axes
+        fig.patch.set_visible(False)
+        ax.axis('off')
+        ax.axis('tight')
 
-    ax.table(cellText=df.values, colLabels=df.columns, loc='center')
+        ax.table(cellText=df.values, colLabels=df.columns, loc='center')
 
-    fig.tight_layout()
-    
-    plt.savefig('index_track.png', bbox_inches='tight')
+        fig.tight_layout()
+        filename = "track_index_" + str(index) + ".png"
+        plt.savefig(filename, bbox_inches='tight')
+    else:
+        # index_f = open("change_in_index.txt", "w")
+        # index_f.write(df)
+        filename = "track_index_" + str(index) + ".csv"
+        df.to_csv(filename)
+
+
     
     return
 
