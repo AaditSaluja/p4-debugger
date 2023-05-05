@@ -5,32 +5,47 @@ def parse_registerf(content, reg_handle):
     # data in the format index : [val, changecounter]
     reg_data = {}
     check_str = 'Wrote register \'' + reg_handle.strip() + '\' '
+    
+    track_index = input("Would you like to track change for an index (Enter 1 for yes): ")
     output_file = open("out.txt", "w")
-    debug= open("out2.txt", "w")
-    for i in content:
-        debug.write(i)
-        if(check_str in i):
-            
-            k = i.split(check_str + 'at index ')
+    
+    if(track_index == '1'):
+        # data in the format index : {counter : val}
+        change_dic = {}
+
+    for line in content:
+        if(check_str in line):
+            k = line.split(check_str + 'at index ')
             key_val = k[1].split()
             try:
                 counter = reg_data[key_val[0]][1]
             except:
                 counter = 0
             reg_data[key_val[0]] = [key_val[3], counter + 1]
+            
+            if(track_index == '1'):
+                try:
+                    change_dic[key_val[0]].update({counter + 1: key_val[3]})
+                except:
+                    change_dic[key_val[0]] = {counter + 1: key_val[3]}
     
-    viz_data(reg_data, output_file)
-    
+    status = viz_data(reg_data, output_file)
+    if(track_index == '1' and status == 1):
+        viz_index(change_dic)
 
     output_file.close()
-    debug.close()
 
 def parse_register_largef(file_handler, reg_handle, final_time_lst):
     # data in the format: index : [val, changecounter]
     reg_data = {}
     check_str = 'Wrote register \'' + reg_handle.strip() + '\' '
+
+    track_index = input("Would you like to track change for an index (Enter 1 for yes): ")
+    if(track_index == '1'):
+        # data in the format index : {counter : val}
+        change_dic = {}
+
     output_file = open("out.txt", "w")
-    debug= open("out2.txt", "w")
 
     while(True):
         try:
@@ -39,7 +54,6 @@ def parse_register_largef(file_handler, reg_handle, final_time_lst):
                 print("Reached Limit")
                 break
             if(check_str in k):
-                debug.write(k)
                 line_sp = k.split(check_str + 'at index ')
                 key_val = line_sp[1].split()
                 try:
@@ -47,23 +61,37 @@ def parse_register_largef(file_handler, reg_handle, final_time_lst):
                 except:
                     counter = 0
                 reg_data[key_val[0]] = [key_val[3], counter + 1]
+
+                if(track_index == '1'):
+                    try:
+                        change_dic[key_val[0]].update({counter + 1: key_val[3]})
+                    except:
+                        change_dic[key_val[0]] = {counter + 1: key_val[3]}
         except:
             break
     
     # for key, val in reg_data.items():
     #     output_file.write(key + ": " + val[0] + " - " + str(val[1]) + "\n")
 
-    viz_data(reg_data, output_file)
+    status = viz_data(reg_data, output_file)
+
+    if(track_index == '1' and status == 1):
+        viz_index(change_dic)
 
     output_file.close()
-    debug.close()
+    
+    return
 
 
 def viz_data(reg_data, filehandler):
+
+    if(len(reg_data) == 0):
+        print("No Register Updates In Region")
+        return 0
+    
     data_pd = {"Index": [],
                "Final Value": [],
                "Changes in Timeperiod": []}
-    
     for key, val in reg_data.items():
         filehandler.write(key + ": " + val[0] + " - " + str(val[1]) + "\n")
         data_pd["Index"].append(key)
@@ -72,7 +100,8 @@ def viz_data(reg_data, filehandler):
 
     df = pd.DataFrame(data_pd)
     print(df)
-
+    
+    
     fig, ax = plt.subplots()
 
     # hide axes
@@ -83,9 +112,42 @@ def viz_data(reg_data, filehandler):
     ax.table(cellText=df.values, colLabels=df.columns, loc='center')
 
     fig.tight_layout()
+    
+    plt.savefig('registers.png', bbox_inches='tight')
+    
+    return 1
 
-    plt.show()
+def viz_index(change_data):
+    index = input("Index to track: ")
+    try:
+        index_change = change_data[index]
+    except:
+        print("Index Does Not Exist")
+        return
+    
+    data_pd = {"Change Number": [],
+               "Value": [],
+               }
+    for key, val in index_change.items():
+        data_pd["Change Number"].append(key)
+        data_pd["Value"].append(val)
 
+    df = pd.DataFrame(data_pd)
+    
+    fig, ax = plt.subplots()
+
+    # hide axes
+    fig.patch.set_visible(False)
+    ax.axis('off')
+    ax.axis('tight')
+
+    ax.table(cellText=df.values, colLabels=df.columns, loc='center')
+
+    fig.tight_layout()
+    
+    plt.savefig('index_track.png', bbox_inches='tight')
+    
+    return
 
 def track_pathf(filehandler, timeperiod, registername):
     return 0
@@ -128,13 +190,10 @@ while True:
                 break
             
             content = []
-            call_type = 0 # 0 for small files, 1 for large files/ timeperiod specified
             final_time_lst = 0
             if(timeperiod == 0):
-                content = file.read()
-                call_type = 0
+                content = file.readlines()
             else:
-                call_type = 1
                 while(True):
                     try:
                         k = file.readline()
@@ -169,7 +228,7 @@ while True:
             control_name = input("Name of the Control Process with Register (Typically MyIngress): ")
             reg_name = input("Name of Register to Track: ")
             reg_handle = control_name + '.' + reg_name
-            if(call_type == 1):
+            if(timeperiod != 0):
                 parse_register_largef(file, reg_handle, final_time_lst)
                 file.close()
             else:
