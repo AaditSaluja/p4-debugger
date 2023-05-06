@@ -162,14 +162,11 @@ def viz_index(change_data):
     
     return
 
-def track_pathf(filehandler, timeperiod, registername):
-    return 0
 
 while True:
     command = input('''
     [1] Parse Registers
-    [2] Track Packet Path
-    [3] Exit \n
+    [2] Exit \n
     ''')
     if (command == "1"):
         retries = 0
@@ -243,10 +240,7 @@ while True:
             else:
                 file.close()
                 parse_registerf(content, reg_handle)
-
     elif(command == "2"):
-        track_pathf(0, 0, 0)
-    elif(command == "3"):
         break
     else:
         print("Invalid Command")
