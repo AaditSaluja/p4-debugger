@@ -233,10 +233,6 @@ while True:
                         print("Invalid File Type or Empty File")
                         break
                 
-                
-
-
-
 
             control_name = input("Name of the Control Process with Register (Typically MyIngress): ")
             reg_name = input("Name of Register to Track: ")
