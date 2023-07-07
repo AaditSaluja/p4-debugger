@@ -1,4 +1,6 @@
 ## Background
+This project was created as as assignment for Harvard College's CS 145 \(Networking at Scale\) by Dr. Minlan Yu. 
+
 This project contains an implementation for an assistive tool that help with development with P4. The tool has the capabilities to parse log files and visualize/present changes that happen in registers over the course of time. It can output both the final register values after `k` seconds of running a flow and the corresponding change of values for any index of the register in the first `k` seconds. 
 
 I added the ability to partially parse log files by time periods due to the following reasons: \n
